@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Generator tells Prisma WHERE to put the auto-generated client code.
+// When you run `npx prisma generate`, it creates helper functions
+// (like prisma.story.findMany()) inside the "app/generated/prisma" folder.
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+// Datasource tells Prisma WHICH database to connect to.
+// The actual URL comes from prisma.config.ts (which reads .env).
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Story ───────────────────────────────────────────────────────────
+// Each row = one news article fetched from Hacker News or Dev.to.
+// We store the raw data (title, url, scores) plus the topic tag
+// we assign during ingestion (e.g. "AI", "React", "DevOps").
+model Story {
+  id           Int      @id @default(autoincrement())
+  title        String
+  url          String
+  source       String   // "hackernews" or "devto"
+  score        Int      @default(0)
+  commentCount Int      @default(0)
+  topic        String   // keyword-based tag assigned at fetch time
+  fetchedAt    DateTime @default(now())
+
+  // Composite unique constraint prevents saving the same article twice
+  // (same title from the same source = duplicate).
+  @@unique([title, source])
+}
+
+// ─── Cluster ─────────────────────────────────────────────────────────
+// One row per topic per fetch cycle.  After we fetch & tag stories,
+// we group them by topic and ask Gemini to write a 2-3 sentence summary
+// explaining what's trending in that topic and why it matters.
+model Cluster {
+  id        Int      @id @default(autoincrement())
+  topic     String
+  aiSummary String   // Gemini-generated summary text
+  createdAt DateTime @default(now())
+}
+
+// ─── Subscriber ──────────────────────────────────────────────────────
+// Users who sign up for the weekly email digest.
+// They pick which topics they care about (e.g. ["AI", "React"]),
+// and every Friday we send them only the summaries for those topics.
+model Subscriber {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique          // one subscription per email
+  topics    String[] // Postgres array of topic strings
+  createdAt DateTime @default(now())
+}
+
+// ─── TopicStat ───────────────────────────────────────────────────────
+// A daily snapshot used to power the Recharts trend chart.
+// Each row records how many stories appeared for a given topic on a
+// given date, plus the average engagement score for that day.
+model TopicStat {
+  id         Int      @id @default(autoincrement())
+  topic      String
+  date       DateTime // the calendar date this snapshot covers
+  storyCount Int      @default(0)
+  avgScore   Float    @default(0)
+
+  // One snapshot per topic per day — prevents duplicate entries
+  // if the cron job accidentally runs twice on the same date.
+  @@unique([topic, date])
+}

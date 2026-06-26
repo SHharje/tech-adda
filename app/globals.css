@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* ─── TechAdda Design System ────────────────────────────────────────
+   Bloomberg Terminal × Live Scoreboard aesthetic.
+   Dense, data-forward, electric urgency.
+──────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  /* ── Core palette ────────────────────────────────────── */
+  --color-navy: #0A0F1E;
+  --color-panel: #111827;
+  --color-border: #1E293B;
+  --color-cyan: #00D4FF;
+  --color-amber: #F59E0B;
+  --color-muted: #64748B;
+  --color-body: #CBD5E1;
+  --color-white: #F8FAFC;
+  --color-rose: #F43F5E;
+  --color-emerald: #10B981;
+  --color-violet: #8B5CF6;
+  --color-orange: #F97316;
+
+  /* ── Fonts ───────────────────────────────────────────── */
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* ─── Base styles ───────────────────────────────────────────────── */
+body {
+  background: #0A0F1E;
+  color: #CBD5E1;
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar (terminal-style) ────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0F1E;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* ─── Signal bar animation ──────────────────────────────────────── */
+@keyframes signal-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes signal-grow {
+  from { width: 0%; }
+  to { width: var(--signal-width); }
+}
+
+.signal-bar-fill {
+  animation: signal-grow 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.signal-pulse {
+  animation: signal-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Skeleton loader (pulsing horizontal line) ─────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.skeleton-line {
+  height: 2px;
+  background: #1E293B;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── Topic left-border color classes ───────────────────────────── */
+.topic-border-ai { border-left-color: #00D4FF; }
+.topic-border-react { border-left-color: #F59E0B; }
+.topic-border-devops { border-left-color: #10B981; }
+.topic-border-webdev { border-left-color: #8B5CF6; }
+.topic-border-security { border-left-color: #F43F5E; }
+.topic-border-cloud { border-left-color: #F97316; }
+.topic-border-mobile { border-left-color: #06B6D4; }
+.topic-border-database { border-left-color: #A78BFA; }
+.topic-border-general { border-left-color: #64748B; }
+
+/* ─── Link styles ───────────────────────────────────────────────── */
+a {
+  transition: color 0.15s ease;
+}
+
+/* ─── Dashboard card entrance animation ─────────────────────────── */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-card-enter {
+  animation: card-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+
+/* ─── Hide scrollbar (for horizontal tab row) ───────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
