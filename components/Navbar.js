@@ -28,7 +28,7 @@ export default function Navbar() {
             Tech
           </span>
           <span className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight text-[#00D4FF]">
-            Adda
+            Digest
           </span>
         </Link>
 
