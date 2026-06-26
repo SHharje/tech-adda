@@ -28,7 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "TechAdda — Live Tech News Aggregator",
+  title: "TechDigest — Live Tech News Aggregator",
   description:
     "Real-time tech news from Hacker News & Dev.to, clustered by topic with AI-generated summaries and trend charts.",
 };
