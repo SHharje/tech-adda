@@ -112,14 +112,14 @@ export async function GET(request) {
     }
 
     // ── Step 1: Fetch recent stories ─────────────────────────────────
-    // Pull all stories from the last 6 hours.  This matches the cron
+    // Pull all stories from the last 12 hours.  This matches the cron
     // schedule — so each summarization cycle covers exactly one fetch
     // cycle's worth of stories.
-    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
 
     const recentStories = await prisma.story.findMany({
       where: {
-        fetchedAt: { gte: sixHoursAgo },
+        fetchedAt: { gte: twelveHoursAgo },
       },
       orderBy: { score: "desc" },
     });
