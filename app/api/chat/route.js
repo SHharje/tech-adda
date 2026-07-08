@@ -12,6 +12,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { GoogleGenAI } from "@google/genai";
+import { withRetry } from "@/lib/withRetry";
 
 // Initialize the Gemini SDK
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -30,13 +31,15 @@ export async function POST(request) {
     // ── 1. Fetch Context (Recent Stories) ────────────────────────────────
     // We fetch stories from the last 3 days to give the AI fresh knowledge
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    const recentStories = await prisma.story.findMany({
-      where: {
-        fetchedAt: { gte: threeDaysAgo },
-      },
-      orderBy: { score: "desc" },
-      take: 150, // Limit to top 150 to keep the prompt size reasonable
-    });
+    const recentStories = await withRetry(() =>
+      prisma.story.findMany({
+        where: {
+          fetchedAt: { gte: threeDaysAgo },
+        },
+        orderBy: { score: "desc" },
+        take: 150,
+      })
+    );
 
     // Format the stories into a readable list for the AI
     const contextList = recentStories

@@ -12,6 +12,7 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { withRetry } from "@/lib/withRetry";
 
 // ── Helper: Format relative time ─────────────────────────────────────
 function formatTimeAgo(date) {
@@ -32,6 +33,11 @@ function formatTimeAgo(date) {
 
 export async function GET() {
   try {
+    // withRetry wraps ALL Prisma calls in this handler.
+    // If Neon's control plane returns a transient HTTP 500
+    // (DriverAdapterError / XX000), the entire block is retried
+    // with exponential backoff (up to 4 attempts, max 5s wait).
+    return await withRetry(async () => {
     // ════════════════════════════════════════════════════════════════
     // 1. SIGNALS — top topics with story counts
     // ════════════════════════════════════════════════════════════════
@@ -262,14 +268,15 @@ export async function GET() {
     );
 
     return NextResponse.json({
-      success: true,
-      signals,
-      clusters: enrichedClusters,
-      recentStories,
-      weeklyStories,
-      topics: allTopics,
-      topicCounts: topicCountMap,
-    });
+        success: true,
+        signals,
+        clusters: enrichedClusters,
+        recentStories,
+        weeklyStories,
+        topics: allTopics,
+        topicCounts: topicCountMap,
+      });
+    }); // end withRetry
   } catch (error) {
     console.error("Dashboard API error:", error);
     return NextResponse.json(

@@ -16,6 +16,7 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { withRetry } from "@/lib/withRetry";
 
 // ── Hacker News API endpoints ────────────────────────────────────────
 // These are 100% free, require no API key, and return clean JSON.
@@ -180,26 +181,28 @@ async function saveStories(stories) {
       // If a story with the same title from the same source already exists,
       // we UPDATE its score and comment count (they change over time).
       // If it doesn't exist yet, we CREATE a new row.
-      await prisma.story.upsert({
-        where: {
-          title_source: {
-            title: story.title,
-            source: story.source,
+      await withRetry(() =>
+        prisma.story.upsert({
+          where: {
+            title_source: {
+              title: story.title,
+              source: story.source,
+            },
           },
-        },
-        update: {
-          score: story.score,
-          commentCount: story.commentCount,
-        },
-        create: {
-          title: story.title,
-          url: story.url,
-          source: story.source,
-          score: story.score,
-          commentCount: story.commentCount,
-          topic: story.topic,
-        },
-      });
+          update: {
+            score: story.score,
+            commentCount: story.commentCount,
+          },
+          create: {
+            title: story.title,
+            url: story.url,
+            source: story.source,
+            score: story.score,
+            commentCount: story.commentCount,
+            topic: story.topic,
+          },
+        })
+      );
       saved++;
     } catch (err) {
       // If one story fails (e.g. weird characters), skip it and continue.
@@ -275,21 +278,23 @@ export async function GET(request) {
     let statsRecorded = 0;
     for (const [topic, stats] of Object.entries(topicCounts)) {
       const avgScore = Math.round(stats.totalScore / stats.count);
-      await prisma.topicStat.upsert({
-        where: {
-          topic_date: { topic, date: today },
-        },
-        update: {
-          storyCount: stats.count,
-          avgScore,
-        },
-        create: {
-          topic,
-          date: today,
-          storyCount: stats.count,
-          avgScore,
-        },
-      });
+      await withRetry(() =>
+        prisma.topicStat.upsert({
+          where: {
+            topic_date: { topic, date: today },
+          },
+          update: {
+            storyCount: stats.count,
+            avgScore,
+          },
+          create: {
+            topic,
+            date: today,
+            storyCount: stats.count,
+            avgScore,
+          },
+        })
+      );
       statsRecorded++;
     }
 
